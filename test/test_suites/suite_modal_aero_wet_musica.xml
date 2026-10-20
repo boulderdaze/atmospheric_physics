@@ -79,16 +79,17 @@
     <scheme>musica_ccpp_photolysis</scheme>
 
     <!--
-        Slot for a SAD -> MICM rate-parameter provider: a scheme placed here
-        may write into micm_rate_parameters before the MICM solve.
-        mam_surfarea_diagnostics demonstrates the aerosol interface (it calls
-        aero_state%surf_area_dens for the MAM model and writes the per-mode
-        surface area density and wet diameter to history) and checks any such
-        provider: for every MICM surface reaction it recovers 4 pi r^2 N from
-        the rate parameters and writes which MAM mode's (SAD, wet dgnum/2) it
-        equals (srx_sad_<label>, srx_chk_<label>). It writes nothing into MICM,
-        so it runs after the provider slot and before the solve.
+        SAD -> MICM surface reaction rate parameters. mam_micm_surface_rates
+        writes each MICM surface reaction's (effective radius, particle number
+        concentration) from the MAM mode named by its '_a<mm>' label suffix,
+        so it runs after musica_ccpp_photolysis (which resets every rate
+        parameter) and before the MICM solve. mam_surfarea_diagnostics writes
+        the per-mode surface area density and wet diameter to history and
+        checks the provider: for every MICM surface reaction it recovers
+        4 pi r^2 N from the rate parameters and writes which MAM mode's
+        (SAD, wet dgnum/2) it equals (srx_sad_<label>, srx_chk_<label>).
     -->
+    <scheme>mam_micm_surface_rates</scheme>
     <scheme>mam_surfarea_diagnostics</scheme>
 
     <scheme>musica_ccpp_chemistry</scheme>
