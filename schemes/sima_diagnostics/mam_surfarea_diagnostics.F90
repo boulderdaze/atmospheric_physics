@@ -35,8 +35,8 @@ module mam_surfarea_diagnostics
 
    ! CAM's default sad_chem_spec_types for MAM (aerosol_nl namelist in CAM),
    ! hardcoded because this scheme only demonstrates the interface.
-   character(len=9), parameter :: sad_chem_spec_types(5) = (/ &
-        'sulfate  ', 's-organic', 'p-organic', 'black-c  ', 'ammonium ' /)
+   character(len=9), parameter :: sad_chem_spec_types(5) = &
+        [ character(len=9) :: 'sulfate', 's-organic', 'p-organic', 'black-c', 'ammonium' ]
 
    ! Per-mode history field names, built at init.
    integer                        :: nmodes = 0
