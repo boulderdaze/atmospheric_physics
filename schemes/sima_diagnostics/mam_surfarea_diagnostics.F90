@@ -9,8 +9,8 @@
 !     over the chemistry species types (CAM history names)
 !   - sad_a<mm>, dmaer_a<mm>: per-mode surface area density and wet
 !     number-mode diameter, the sfc/dm_aer pair CAM's hetrxtrate consumes
-! It writes nothing into MICM: the SAD -> surface-reaction rate parameter
-! provider is the MUSICA team's work and would occupy the same suite slot.
+! It writes nothing into MICM: the SAD -> surface-reaction rate parameters are
+! filled by mam_micm_surface_rates, which runs just before this scheme.
 !
 ! It also checks that provider in place. Every MICM surface reaction carries
 ! two rate parameters per grid cell, '<label>.effective radius [m]' and
@@ -46,11 +46,9 @@ module mam_surfarea_diagnostics
    ! MICM surface reactions found in the mechanism at init (rate-parameter
    ! labels '<label>.effective radius [m]' / '<label>.particle number
    ! concentration [# m-3]'), their rate-parameter slots and history names.
-   character(len=*), parameter :: radius_suffix = '.effective radius [m]'
-   character(len=*), parameter :: number_suffix = '.particle number concentration [# m-3]'
    real(kind_phys),  parameter :: match_rtol = 1.0e-10_kind_phys ! relative tolerance of the identity check
-   integer                         :: nsurf = 0
-   character(len=128), allocatable :: surf_label(:)
+   integer                                          :: nsurf = 0
+   character(len=:),   allocatable :: surf_label(:)
    integer,            allocatable :: surf_iradius(:)  ! slot of the effective radius [m]
    integer,            allocatable :: surf_inumber(:)  ! slot of the particle number concentration [# m-3]
    character(len=32),  allocatable :: srx_sad_name(:)  ! srx_sad_<label>: recovered 4 pi r^2 N (cm2/cm3)
@@ -106,55 +104,31 @@ contains
    ! phase) and register their history fields. Field names are the label with
    ! any character outside [A-Za-z0-9_] replaced by '_', truncated to fit.
    subroutine find_micm_surface_reactions(errmsg, errflg)
-      use cam_history,         only: history_add_field
-      use cam_history_support, only: fieldname_len
-      use musica_ccpp_micm,    only: rate_parameters_ordering
+      use cam_history,              only: history_add_field
+      use cam_history_support,      only: fieldname_len
+      use musica_ccpp_micm,         only: rate_parameters_ordering
+      use musica_ccpp_micm_surface, only: find_surface_reactions_in_ordering
 
       character(len=*), intent(out) :: errmsg
       integer,          intent(out) :: errflg
 
-      integer :: nparams, i, j, k, nlab
-      character(len=:), allocatable :: pname
+      integer :: j, k, nlab
       character(len=fieldname_len)  :: stem
 
-      nparams = rate_parameters_ordering%size()
-
-      nsurf = 0
-      do i = 1, nparams
-         pname = rate_parameters_ordering%name(i)
-         if (ends_with(pname, radius_suffix)) nsurf = nsurf + 1
-      end do
+      call find_surface_reactions_in_ordering(rate_parameters_ordering, surf_label, &
+           surf_iradius, surf_inumber, errmsg, errflg)
+      if (errflg /= 0) return
+      nsurf = size(surf_label)
       if (nsurf == 0) return
 
-      allocate(surf_label(nsurf), surf_iradius(nsurf), surf_inumber(nsurf), &
-               srx_sad_name(nsurf), srx_chk_name(nsurf), stat=errflg, errmsg=errmsg)
+      allocate(srx_sad_name(nsurf), srx_chk_name(nsurf), stat=errflg, errmsg=errmsg)
       if (errflg /= 0) then
          errmsg = 'mam_surfarea_diagnostics_init: allocate surface reaction tables: '//trim(errmsg)
          return
       end if
 
-      j = 0
-      do i = 1, nparams
-         pname = rate_parameters_ordering%name(i)
-         if (.not. ends_with(pname, radius_suffix)) cycle
-         j = j + 1
-         nlab = len(pname) - len(radius_suffix)
-         surf_label(j)   = pname(1:nlab)
-         surf_iradius(j) = rate_parameters_ordering%index(i)
-
-         ! the partner parameter of the same reaction
-         surf_inumber(j) = -1
-         do k = 1, nparams
-            if (rate_parameters_ordering%name(k) == trim(surf_label(j))//number_suffix) then
-               surf_inumber(j) = rate_parameters_ordering%index(k)
-            end if
-         end do
-         if (surf_inumber(j) < 0) then
-            errflg = 1
-            errmsg = 'mam_surfarea_diagnostics_init: MICM surface reaction "'//trim(surf_label(j))// &
-                     '" has no particle number concentration rate parameter'
-            return
-         end if
+      do j = 1, nsurf
+         nlab = len_trim(surf_label(j))
 
          ! history names: 8-character prefix + sanitized label, within fieldname_len
          stem = ' '
@@ -181,14 +155,6 @@ contains
       end do
 
    end subroutine find_micm_surface_reactions
-
-   pure logical function ends_with(str, suffix)
-      character(len=*), intent(in) :: str, suffix
-      ends_with = .false.
-      if (len(str) >= len(suffix)) then
-         ends_with = str(len(str) - len(suffix) + 1:) == suffix
-      end if
-   end function ends_with
 
    pure function sanitize(str) result(out)
       character(len=*), intent(in) :: str

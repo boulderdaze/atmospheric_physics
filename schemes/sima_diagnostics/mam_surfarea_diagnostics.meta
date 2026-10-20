@@ -2,7 +2,8 @@
   name = mam_surfarea_diagnostics
   type = scheme
   dependencies = ../modal_aero/ccpp/mam_mode_metadata.F90
-  dependencies = ../musica/micm/musica_ccpp_micm.F90
+  dependencies = ../musica/micm/musica_ccpp_micm.F90,../musica/micm/musica_ccpp_micm_surface.F90
+  dependencies = ../musica/util/musica_ccpp_util.F90
 
 [ccpp-arg-table]
   name = mam_surfarea_diagnostics_init
