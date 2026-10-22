@@ -46,7 +46,7 @@ contains
     real(kind_phys),         intent(in)  :: air_pressure_thickness(:,:)                       ! Pa (column, layer)
     real(kind_phys),         intent(in)  :: solar_zenith_angle(:)                             ! radians (column)
     real(kind_phys),         intent(in)  :: earth_sun_distance                                ! AU
-    real(kind_phys),         intent(out) :: rate_parameters(:,:,:)                            ! various units (column, layer, parameter)
+    real(kind_phys),         intent(inout) :: rate_parameters(:,:,:)                          ! various units (column, layer, parameter)
     character(len=512),      intent(out) :: errmsg
     integer,                 intent(out) :: errcode
 
@@ -57,13 +57,6 @@ contains
 
     errmsg = ''
     errcode = 0
-
-    ! Zero all rate parameters: TUV-x only writes the mapped photolysis slots,
-    ! so unmapped slots (USER./EMIS./LOSS./SURF. reactions, and every slot when
-    ! TUV-x is disabled) would otherwise be uninitialized memory. Zero means the
-    ! corresponding reaction is off. Schemes ordered between this scheme and
-    ! musica_ccpp_chemistry may fill non-photolysis slots.
-    rate_parameters(:,:,:) = 0.0_kind_phys
 
     if (.not. do_tuvx) return
 

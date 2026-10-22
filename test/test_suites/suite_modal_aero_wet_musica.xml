@@ -72,7 +72,8 @@
     <!--
         MUSICA chemistry. calc_dry_air_ideal_gas_density provides dry_air_density.
         musica_ccpp handles the register/init/final phases shared by the
-        photolysis and chemistry run schemes.
+        photolysis and chemistry run schemes, and its timestep_init phase
+        zeroes micm_rate_parameters each timestep.
     -->
     <scheme>calc_dry_air_ideal_gas_density</scheme>
     <scheme>musica_ccpp</scheme>
@@ -81,9 +82,9 @@
     <!--
         SAD -> MICM surface reaction rate parameters. mam_micm_surface_rates
         writes each MICM surface reaction's (effective radius, particle number
-        concentration) from the MAM mode named by its '_a<mm>' label suffix,
-        so it runs after musica_ccpp_photolysis (which resets every rate
-        parameter) and before the MICM solve. mam_surfarea_diagnostics writes
+        concentration) from the MAM mode named by its '_a<mm>' label suffix.
+        It writes only those slots, so it only needs to run before the MICM
+        solve. mam_surfarea_diagnostics writes
         the per-mode surface area density and wet diameter to history and
         checks the provider: for every MICM surface reaction it recovers
         4 pi r^2 N from the rate parameters and writes which MAM mode's
