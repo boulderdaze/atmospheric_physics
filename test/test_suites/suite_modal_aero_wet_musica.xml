@@ -82,14 +82,16 @@
     <!--
         SAD -> MICM surface reaction rate parameters. mam_micm_surface_rates
         writes each MICM surface reaction's (effective radius, particle number
-        concentration) from the MAM mode named by its '_a<mm>' label suffix.
-        It writes only those slots, so it only needs to run before the MICM
-        solve. mam_surfarea_diagnostics writes
+        concentration) from the aerosol mode named by its '_a<mm>' label
+        suffix. It writes only those slots, so it only needs to run before the
+        MICM solve. compute_relative_humidity provides the relative humidity
+        BAM's surf_area_dens needs (MAM ignores it). mam_surfarea_diagnostics writes
         the per-mode surface area density and wet diameter to history and
         checks the provider: for every MICM surface reaction it recovers
         4 pi r^2 N from the rate parameters and writes which MAM mode's
         (SAD, wet dgnum/2) it equals (srx_sad_<label>, srx_chk_<label>).
     -->
+    <scheme>compute_relative_humidity</scheme>
     <scheme>mam_micm_surface_rates</scheme>
     <scheme>mam_surfarea_diagnostics</scheme>
 
