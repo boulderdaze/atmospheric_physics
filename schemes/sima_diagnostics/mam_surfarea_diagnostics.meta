@@ -2,7 +2,8 @@
   name = mam_surfarea_diagnostics
   type = scheme
   dependencies = ../modal_aero/ccpp/mam_mode_metadata.F90
-  dependencies = ../musica/micm/musica_ccpp_micm.F90
+  dependencies = ../musica/micm/musica_ccpp_micm.F90,../musica/micm/musica_ccpp_micm_surface.F90
+  dependencies = ../musica/util/musica_ccpp_util.F90
 
 [ccpp-arg-table]
   name = mam_surfarea_diagnostics_init
@@ -64,6 +65,12 @@
   units = none
   type = real | kind = kind_phys
   dimensions = (horizontal_loop_extent,vertical_layer_dimension,number_of_micm_rate_parameters)
+  intent = in
+[ sad_chem_spec_types ]
+  standard_name = aerosol_species_types_for_tropospheric_chemistry_surface_area_density
+  units = none
+  type = character | kind = len=*
+  dimensions = (sad_chem_spec_types_dimension)
   intent = in
 [ errmsg ]
   standard_name = ccpp_error_message
